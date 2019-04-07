@@ -29,7 +29,7 @@ def calcSuccess(predictedCounter, randAssault):
 
     if predictedCounter == "parry_L":
         instructionLabel.config(text="LEFT PARRY")
-        if randAssault == 5 or randAssault == 5:
+        if randAssault == 5 or randAssault == 3:
             descriptionLabel.config(text="You've successfully parried!")
         elif randAssault == 2:
             descriptionLabel.config(text="You've been cut!")
@@ -60,6 +60,10 @@ def calcSuccess(predictedCounter, randAssault):
         instructionLabel.config(text="RIGHT WEAVE")
         if randAssault == 1 or randAssault == 3 or randAssault == 5:
             descriptionLabel.config(text="You've successfully evaded!")
+        elif randAssault == 4:
+            descriptionLabel.config(text="You've been hit!")
+        elif randAssault == 2:
+            descriptionLabel.config(text="You've been cut!")
         else:
             descriptionLabel.config(text="You've been grabbed!")
 
@@ -67,6 +71,10 @@ def calcSuccess(predictedCounter, randAssault):
         instructionLabel.config(text="LEFT WEAVE")
         if randAssault == 0 or randAssault == 2 or randAssault == 4:
             descriptionLabel.config(text="You've successfully evaded!")
+        elif randAssault == 5:
+            descriptionLabel.config(text="You've been hit!")
+        elif randAssault == 3:
+            descriptionLabel.config(text="You've been cut!")
         else:
             descriptionLabel.config(text="You've been grabbed!")
 
@@ -121,14 +129,14 @@ def show_frame(milliseconds):
         vidLabel.imgtk = imgtk
         vidLabel.config(image=imgtk)
         root.update()
-        print(milliseconds)
-        root.after(50, show_frame, (milliseconds-50))
+        root.after(30, show_frame, (milliseconds-30))
     _, frame = cap.read()
     cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA) 
     img = Image.fromarray(cv2image)
     img = img.convert("RGB")
     img.save("imgFile.jpeg")
-    return ml.predict("imgFile.jpeg")
+    if milliseconds == secondsChosen*3000: 
+        return ml.predict("imgFile.jpeg")
 
 #make bottom frame that hold buttons
 buttonFrame = Frame(root)
@@ -149,13 +157,15 @@ def runPrompt():
     assaultList = ["Grab from your right", "Grab from your left", "Blade attack from the right", "Blade attack from the left", "Hit from the right", "Hit from the left"]
     counterList = ["parry_R", "parry_L", "weave_R", "weave_L", "punch_R", "punch_L", "block"]
     difficultyChoice = (difficultyList.get(ACTIVE))
+    global secondsChosen
     secondsChosen = 0
     if difficultyChoice[0] == "E":
         secondsChosen = 6
-    if difficultyChoice[0] == "M":
+    elif difficultyChoice[0] == "M":
         secondsChosen = 3
     else:
         secondsChosen = 1
+    print(secondsChosen)
     difficultyList.pack_forget()
 
     randAssault = random.randint(0, 5)
@@ -167,7 +177,7 @@ def runPrompt():
     if predictedCounter not in counterList:
         predictedCounter = counterList[random.randint(0, 6)]
     
-    root.after(secondsChosen*2000, calcSuccess, predictedCounter, randAssault)
+    root.after(secondsChosen*1200, calcSuccess, predictedCounter, randAssault)
 
     return 0
 
@@ -175,9 +185,9 @@ def reset():
     resetButton.pack_forget()
     startButton.config(text="Start")
     startButton.pack(side=BOTTOM)
-    descriptionLabel.config(text=descriptionText, font=("Courier", 18))
-    descriptionLabel.pack(side==TOP)
     instructionLabel.config(text=instructionText, font=("Courier", 16))
+    descriptionLabel.config(text=descriptionText, font=("Courier", 18))
+    descriptionLabel.pack(side=TOP)
     difficultyList.pack(side=TOP)
 
 
