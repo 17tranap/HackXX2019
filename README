@@ -1,0 +1,30 @@
+Documentation
+
+Prompt            Response
+(S) Straight   (!S)Weave -> (!S)Hook -> (S)Straight -> (!S)Jab -> (S)Uppercut
+
+(S) Hook       (!S)Block -> (S)Weave -> (S)Cross -> (!S)Straight
+
+* Pose Prompt will be displayed
+  - User will have 2 Max seconds to register a correct response
+  - Correct response will show confirmation on the UI
+
+* Interface feedback will inform user of level of success
+  - Avoided -> Stunned -> Subdued
+
+* Counter strikes are assigned certain point values to track user's progress
+  - Jab (5)
+  - Cross (7)
+  - Straight (8)
+  - Uppercut (10)
+
+* UI
+  -Graphics for prompt
+    * Outline of pose (+points for gif format)
+  -Select difficulty
+    * Modify response time
+  -Keep track of successful reactions
+
+
+Implementation
+*AutoML
