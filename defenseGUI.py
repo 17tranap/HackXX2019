@@ -6,14 +6,85 @@ from PIL import Image #to handle non-gif image formats
 
 import cv2
 import numpy as np
+from statistics import mode
+
+import time
 
 import random
 
 import predict
 
+def calcSuccess(predictedCounter, randAssault):
+    vidLabel.pack_forget()
+    if predictedCounter == "parry_R":
+        instructionLabel.config(text="RIGHT PARRY")
+        if randAssault == 4 or randAssault == 2:
+            descriptionLabel.config(text="You've successfully parried!")
+        elif randAssault == 3:
+            descriptionLabel.config(text="You've been cut!")
+        elif randAssault == 5:
+            descriptionLabel.config(text="You've been hit!")
+        else:
+            descriptionLabel.config(text="You've been grabbed!")
+
+    if predictedCounter == "parry_L":
+        instructionLabel.congig(text="LEFT PARRY")
+        if randAssault == 5 or randAssault == 5:
+            descriptionLabel.config(text="You've successfully parried!")
+        elif randAssault == 2:
+            descriptionLabel.config(text="You've been cut!")
+        elif randAssault == 4:
+            descriptionLabel.config(text="You've been hit!")
+        else:
+            descriptionLabel.config(text="You've been grabbed!")
+
+    if predictedCounter == "punch_R":
+        instructionLabel.congig(text="RIGHT PUNCH")
+        if randAssault == 0 or randAssault == 1 or randAssault == 4:
+            descriptionLabel.config(text="You've successfully counter attacked!")
+        elif randAssault == 2 or randAssaut == 3:
+            descriptionLabel.config(text="You've been cut!")
+        elif randAssault == 5:
+            descriptionLabel.config(text="You've been hit!")
+
+    if predictedCounter == "punch_L":
+        instructionLabel.congig(text="LEFT PUNCH")
+        if randAssault == 0 or randAssault == 1 or randAssault == 5:
+            descriptionLabel.config(text="You've successfully counter attacked!")
+        elif randAssault == 2 or randAssaut == 3:
+            descriptionLabel.config(text="You've been cut!")
+        elif randAssault == 4:
+            descriptionLabel.config(text="You've been hit!")
+
+    if predictedCounter == "weave_R":
+        instructionLabel.congig(text="RIGHT WEAVE")
+        if randAssault == 1 or randAssault == 3 or randAssault == 5:
+            descriptionLabel.config(text="You've successfully evaded!")
+        else:
+            descriptionLabel.config(text="You've been grabbed!")
+
+    if predictedCounter == "weave_L":
+        instructionLabel.congig(text="LEFT WEAVE")
+        if randAssault == 0 or randAssault == 2 or randAssault == 4:
+            descriptionLabel.config(text="You've successfully evaded!")
+        else:
+            descriptionLabel.config(text="You've been grabbed!")
+
+    if predictedCounter == "block":
+        instructionLabel.congig(text="BLOCK")
+        if randAssault == 5 or randAssault == 4:
+            descriptionLabel.config(text="You've successfully blocked!")
+        elif randAssault == 2 or randAssaut == 3:
+            descriptionLabel.config(text="You've been cut!")
+        elif randAssault == 0 or randAssault == 1:
+            descriptionLabel.config(text="You've been grabbed!")
+    descriptionLabel.pack()
+
+
 cap = cv2.VideoCapture(0)
 
 root = tk.Tk() #initialize tkinter by making tk rook widget--consists of window with tile bar and decoration provided by window manager. Root widget must be made first and can only be one.
+root.geometry("2000x1000")
 
 ldFrame = Frame(root).pack(side="top") #frame to hold logo and description
 canvas = Canvas(ldFrame, width=700, height=200)
@@ -26,7 +97,8 @@ canvas.create_image(350, 100, image=logo) #adds PhotoImage to Canvas
 
 #make basic description label from text string on the logo description frame
 descriptionText = """This program trains the user to respond in self defense to common physical threats."""
-descriptionLabel = tk.Label(ldFrame, justify="center", padx=10, font=("Courier", 18), text=descriptionText).pack(side="top")
+descriptionLabel = tk.Label(ldFrame, justify="center", padx=10, font=("Courier", 18), text=descriptionText)
+descriptionLabel.pack(side="top")
 
 #make center frame that will show instructions initially and then have "assaulter" prompts and live video
 centerFrame = Frame(root).pack()
@@ -38,19 +110,20 @@ instructionLabel.pack(side="top")
 #setup to capture video frames
 vidLabel = Label(root)
 def show_frame(milliseconds):
-    _, frame = cap.read()
-    frame = cv2.flip(frame, 1) #horizontally flips images so is like reflection
-    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA) #makes normal color
-    img = Image.fromarray(cv2image)
-    imgtk = ImageTk.PhotoImage(img)
-    vidLabel.imgtk = imgtk
-    vidLabel.config(image=imgtk)
-    root.update()
-    print(milliseconds)
-    if milliseconds < 0:
-        print(predict.get_prediction(frame, "ace-connection-236822", "ICN2459521650166688930"))
-        return
-    root.after(30, show_frame(milliseconds-30))
+    if milliseconds > 0:
+        #global predictionArr
+        _, frame = cap.read()
+        #predictionArr.append(predict.get_prediction(frame, "ace-connection-236822", "ICN2459521650166688930"))
+        frame = cv2.flip(frame, 1) #horizontally flips images so is like reflection
+        cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA) #makes normal color
+        img = Image.fromarray(cv2image)
+        imgtk = ImageTk.PhotoImage(img)
+        vidLabel.imgtk = imgtk
+        vidLabel.config(image=imgtk)
+        root.update()
+        print(milliseconds)
+        root.after(50, show_frame, (milliseconds-50))
+        return "parry_R"
         
 
 #make bottom frame that hold buttons
@@ -64,7 +137,10 @@ difficultyList.pack(side="top")
 
 cycling = True
 
-def runPrompts():
+def runPrompt():
+    startButton.config(text="Next")
+    startButton.pack(side=LEFT)
+    resetButton.pack(side=RIGHT)
     assaultList = ["Grab from your right", "Grab from your left", "Blade attack from the right", "Blade attack from the left", "Hit from the right", "Hit from the left"]
     difficultyChoice = (difficultyList.get(ACTIVE))
     secondsChosen = 0
@@ -74,6 +150,7 @@ def runPrompts():
         secondsChosen = 3
     else:
         secondsChosen = 1
+    difficultyList.pack_forget()
 
     #countdownLabel.config(text=str(secondsChosen))
     #countdownLabel.pack()
@@ -81,18 +158,16 @@ def runPrompts():
         randAssault = random.randint(0, 5)
         instructionLabel.config(text=assaultList[randAssault], font=("Courier", 25))
         vidLabel.pack()
-        difficultyList.pack_forget()
-        root.update()
+        descriptionLabel.pack_forget()
+        #root.update()
         
-        show_frame(secondsChosen*1000)
+        global predictionArr
+        #predictionArr = []
+        predictedCounter = show_frame(secondsChosen*1000)
         #countdown(secondsChosen) #here call method to analyze recording and print success
-        vidLabel.pack_forget()
-
-    difficultyList.pack()
-    instructionLabel.config(text=instructionText)
-
-
-
+        
+        root.after(secondsChosen*2000, calcSuccess, predictedCounter, randAssault)
+        break
     return 0
 
 def countdown(seconds):
@@ -104,13 +179,18 @@ def countdown(seconds):
         countdownLabel.config(text="")
         instructionLabel.config(text="Success")
 
-def stopPrompts():
-    global cycling
-    cycling = False
+def reset():
+    resetButton.pack_forget()
+    startButton.config(text="Start")
+    startButton.pack(side=BOTTOM)
+    descriptionLabel.config(text=descriptionText, font=("Courier", 18))
+    instructionLabel.config(text=instructionText, font=("Courier", 16))
+    difficultyList.pack(side=TOP)
 
 
-startButton = Button(buttonFrame, bd=6, padx=20, pady=20,font=("Courier", 16), text="Start", fg="green", command=runPrompts).pack(side=LEFT)
-stopButton = Button(buttonFrame, bd=6, padx=20, pady=20, font=("Courier", 16), text="Stop", fg="red", command=stopPrompts).pack(side=RIGHT)
+startButton = Button(buttonFrame, bd=6, padx=20, pady=20,font=("Courier", 16), text="Start", fg="green", command=runPrompt)
+startButton.pack(side=BOTTOM)
+resetButton = Button(buttonFrame, bd=6, padx=20, pady=20, font=("Courier", 16), text="Reset", fg="red", command=reset)
     
 
 root.mainloop()
